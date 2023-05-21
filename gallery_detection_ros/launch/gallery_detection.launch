@@ -3,5 +3,7 @@
     <include file="$(find pointcloud_to_image)/launch/ptcl_to_img.launch">
     </include>
     <node name="gallery_detection_node" type="gallery_detection_model_node.py"
-        pkg="gallery_detection_ros" output="screen" />
+        pkg="gallery_detection_ros" output="screen">
+        <param name="~nn_path" value="$(arg path_to_model)" type="str" />
+    </node>
 </launch>
