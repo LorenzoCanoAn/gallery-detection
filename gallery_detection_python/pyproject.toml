@@ -17,7 +17,7 @@ dependencies = [
 description = "Package to genearate meshes that look like underground environments"
 name = "DeepGalleryDetection"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.6"
 version = "0.0.1"
 [project.urls]
 "Bug Tracker" = "https://github.com/LorenzoCanoAn/gallery-detection/issues"
