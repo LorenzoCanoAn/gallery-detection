@@ -6,4 +6,6 @@
         pkg="gallery_detection_ros" output="screen">
         <param name="~nn_path" value="$(arg path_to_model)" type="str" />
     </node>
+    <node name="neural_network_filtering" pkg="gallery_detection_ros"
+        type="output_filtering_node.py" output="log" />
 </launch>
