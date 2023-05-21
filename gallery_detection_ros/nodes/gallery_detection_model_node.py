@@ -17,7 +17,7 @@ class NetworkNode:
         self.init_network()
         self._cv_bridge = CvBridge()
         self.image_subscriber = rospy.Subscriber(
-            "/lidar_image", sensor_msg.Image, self.image_callback
+            "/lidar_image_norm", sensor_msg.Image, self.image_callback
         )
         self.detection_publisher = rospy.Publisher(
             "/gallery_detection_vector", std_msg.Float32MultiArray, queue_size=10
@@ -26,8 +26,9 @@ class NetworkNode:
     def init_network(self):
         file_path = rospy.get_param(
             "~nn_path",
-            default="/home/lorenzo/models/gallery_detection/procedural_datasets/dataset_03/gallery_detector_v3-_r10_lr002_3.torch",
+            default="/home/lorenzo/models/gallery_detection/procedural_datasets/dataset_03/gallery_detector_v3-_r10_lr002_4.torch",
         )
+        print(file_path)
         file_name = pathlib.Path(file_path).name
         nn_type = file_name.split("-")[0]
         module = importlib.import_module("gallery_detection_models.models")

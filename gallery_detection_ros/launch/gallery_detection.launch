@@ -1,0 +1,7 @@
+<launch>
+    <arg name="path_to_model" />
+    <include file="$(find pointcloud_to_image)/launch/ptcl_to_img.launch">
+    </include>
+    <node name="gallery_detection_node" type="gallery_detection_model_node.py"
+        pkg="gallery_detection_ros" output="screen" />
+</launch>
