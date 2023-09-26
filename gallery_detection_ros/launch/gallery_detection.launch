@@ -1,5 +1,6 @@
 <launch>
-    <arg name="path_to_model" />
+    <arg name="path_to_model"
+        default="/home/lorenzo/models/gallery_detection/procedural_datasets/dataset_03/gallery_detector_v3-_r10_lr002_5.torch" />
     <include file="$(find pointcloud_to_image)/launch/ptcl_to_img.launch">
     </include>
     <node name="gallery_detection_node" type="gallery_detection_model_node.py"
