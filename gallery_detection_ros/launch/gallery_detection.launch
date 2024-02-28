@@ -1,11 +1,18 @@
 <launch>
     <arg name="path_to_model"
-        default="/home/lorenzo/models/gallery_detection/procedural_datasets/dataset_03/gallery_detector_v3-_r10_lr002_5.torch" />
-    <include file="$(find pointcloud_to_image)/launch/ptcl_to_img.launch">
+        default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV3.torch" />
+    <arg name="image_topic" value="/depth_image"></arg>
+    <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
+        <arg name="pointcloud_topic" value="/velodyne_points"></arg>
+        <arg name="image_topic" value="$(arg image_topic)" type="str"></arg>
+        <arg name="max_distance" value="100"></arg>
+        <arg name="invert_distance" value="false"></arg>
+        <arg name="normalize_image" value="false"></arg>
     </include>
     <node name="gallery_detection_node" type="gallery_detection_model_node.py"
         pkg="gallery_detection_ros" output="screen">
         <param name="~nn_path" value="$(arg path_to_model)" type="str" />
+        <param name="~image_topic" value="$(arg image_topic)" type="str" />
     </node>
     <node name="neural_network_filtering" pkg="gallery_detection_ros"
         type="output_filtering_node.py" output="log" />
