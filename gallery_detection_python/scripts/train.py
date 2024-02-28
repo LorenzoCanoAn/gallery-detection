@@ -9,9 +9,9 @@ import json
 from pprint import pprint
 import numpy as np
 from tqdm import tqdm
-from gallery_detection_models.models import GalleryDetectorV3
 import neptune
 from PIL import Image
+from gallery_detection_models.models import GalleryDetectorV3
 
 PARAMETERS = {
     "dataset_folder_path": "/media/lorenzo/SAM500/datasets/temp_dataset",
