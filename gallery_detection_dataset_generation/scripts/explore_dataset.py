@@ -7,6 +7,7 @@ import json
 from scipy.spatial.transform import Rotation
 import scipy.stats as stats
 import matplotlib.pyplot as plt
+from generate_dataset import rotate_vector
 
 PARAMS = {"path_to_dataset_folder": "/media/lorenzo/SAM500/datasets/test_dataset"}
 
@@ -47,15 +48,18 @@ def main(P):
             # Plot and save sample
             fig = plt.figure()
             ax1 = fig.add_subplot(2, 1, 1)
-            ax2 = fig.add_subplot(2, 1, 2)
+            ax2 = fig.add_subplot(2, 1, 2, projection="polar")
+            ax2.set_theta_zero_location("N")
             ax1.imshow(img)
-            ax2.plot(lbl)
+            ax2.plot(np.linspace(0, 2 * np.pi, 360), lbl)
             plt.savefig("/home/lorenzo/fig.png")
             # Plot and show environment
             plotter = Plotter()
-            plotter.add_mesh(
-                pv.PolyData(pose[:3]), render_points_as_spheres=True, point_size=20, color="g"
-            )
+            center = np.array(pose[:3])
+            direction = rotate_vector(np.array((1, 0, 0)), pose[3:6])
+            print(center.shape)
+            print(direction.shape)
+            plotter.add_arrows(center, direction, color="g")
             plotter.add_actor(mesh_actor)
             plotter.add_actor(aps_actor)
             plotter.add_actor(avs_actor)
@@ -67,7 +71,6 @@ def main(P):
                 1
             ] += 1  # If the focal point of the camera is the same as position nothing is shown
             cp[2] = (0, 0, 1)
-            print(cp[1])
             plotter.camera_position = cp
             plotter.show()
     os.remove("/home/lorenzo/fig.png")

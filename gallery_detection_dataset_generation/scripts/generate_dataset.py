@@ -6,6 +6,8 @@ import json
 import shutil
 from scipy.spatial.transform import Rotation
 import scipy.stats as stats
+import pyvista as pv
+from pyvista.plotting.plotter import Plotter
 
 PARAMS = {}
 
@@ -127,6 +129,40 @@ class LabelGenerator:
         return label_vector
 
 
+def plot_everything(
+    pv_mesh,
+    aps,
+    avs,
+    p,
+    o,
+    rays,
+    points,
+    label,
+    image,
+):
+    plotter = Plotter()
+    # Add mesh
+    plotter.add_mesh(pv_mesh, style="wireframe")
+    # Add axis points
+    plotter.add_mesh(pv.PolyData(aps), color="k", render_points_as_spheres=True, point_size=5)
+    plotter.add_arrows(aps, avs, mag=0.5, color="gray")
+    # Add datapoint pose
+    plotter.add_mesh(pv.PolyData(p), color="g", render_points_as_spheres=True, point_size=5)
+    R = Rotation.from_euler("xyz", o, degrees=False).as_matrix()
+    x_arrow = R @ np.array((1, 0, 0))
+    y_arrow = R @ np.array((0, 1, 0))
+    z_arrow = R @ np.array((0, 0, 1))
+    plotter.add_arrows(p, x_arrow, color="r")
+    plotter.add_arrows(p, y_arrow, color="g")
+    plotter.add_arrows(p, z_arrow, color="b")
+    plotter.add_axes()
+    print(np.rad2deg(o))
+    camera_pose = (np.array(p) + np.array((10, 10, 3))).tolist()
+    plotter.camera_position = (camera_pose, p, (0, 0, 1))
+    plotter.show()
+    exit()
+
+
 def capture_dataset(index):
     image_width = index["info"]["image_width"]
     base_rays = gen_base_velodyne_rays(image_width)
@@ -151,6 +187,7 @@ def capture_dataset(index):
             os.makedirs(save_folder_path)
             # Load files
             mesh = trimesh.load(path_to_mesh, force="mesh")
+            pv_mesh = pv.read(path_to_mesh)
             axis_data = np.loadtxt(path_to_axis)
             # Create ray caster and label generator
             ray_caster = RayCaster(base_rays=base_rays, mesh=mesh)
@@ -189,6 +226,18 @@ def capture_dataset(index):
                 path_to_file = os.path.join(save_folder_path, file_name)
                 with open(path_to_file, "wb+") as f:
                     np.savez(f, image=image, label=label)
+                plot_everything(
+                    pv_mesh,
+                    aps=axis_data[:, :3],
+                    avs=axis_data[:, 3:6],
+                    p=position,
+                    o=orientation,
+                    rays=vectors,
+                    points=points,
+                    label=label,
+                    image=image,
+                )
+
                 pbar.update(1)
             poses_dict[world_name] = poses_array.tolist()
     path_to_poses_file = os.path.join(index["info"]["path_to_dataset"], "poses.json")
@@ -260,7 +309,8 @@ def gen_index(
         index["data"][world_name]["n_datapoints"] = n_datapoints
         index["data"][world_name]["images_folder"] = world_name
         index["data"][world_name]["fta_dist"] = fta_dist.item()
-    decission = input(f"The number of datapoints is {n_pts_in_dataset}, continue? [yes]/no: ")
+    # decission = input(f"The number of datapoints is {n_pts_in_dataset}, continue? [yes]/no: ")
+    decission = "yes"
     if decission.lower() == "no":
         exit()
     os.makedirs(path_to_dataset_folder, exist_ok=True)
