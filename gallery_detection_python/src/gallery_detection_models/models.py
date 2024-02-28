@@ -1,11 +1,11 @@
-import torch
 from torch import nn
+import torch
 
 
 class GalleryDetectorV3(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv = nn.Sequential(
+        self.conv2d = nn.Sequential(
             nn.Conv2d(1, 8, [3, 5], padding=(0, 2), padding_mode="circular", stride=(1, 2)),
             nn.ReLU(),
             nn.Conv2d(8, 16, [3, 5], padding=(0, 2), padding_mode="circular", stride=(1, 2)),
@@ -16,15 +16,22 @@ class GalleryDetectorV3(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 8, [3, 3], padding=(0, 1), padding_mode="circular", stride=(1, 1)),
             nn.ReLU(),
-            nn.Conv2d(8, 1, [3, 3], padding=(0, 1), padding_mode="circular", stride=(1, 1)),
+            nn.Conv2d(8, 1, [6, 3], padding=(0, 1), padding_mode="circular", stride=(2, 1)),
             nn.ReLU(),
         )
         self.fc = nn.Sequential(
-            nn.Linear(1016, 1024),
-            nn.ReLU(512),
-            nn.Linear(1024, 512),
-            nn.ReLU(512),
-            nn.Linear(512, 360),
+            nn.Linear(254, 360),
+            nn.ReLU(),
+        )
+        self.conv1d = nn.Sequential(
+            nn.Conv1d(1, 32, 5, padding=2, padding_mode="circular"),
+            nn.ReLU(),
+            nn.Conv1d(32, 32, 3, padding=1, padding_mode="circular"),
+            nn.ReLU(),
+            nn.Conv1d(32, 16, 3, padding=1, padding_mode="circular"),
+            nn.ReLU(),
+            nn.Conv1d(16, 1, 3, padding=1, padding_mode="circular"),
+            nn.ReLU(),
         )
 
     @classmethod
@@ -32,9 +39,25 @@ class GalleryDetectorV3(nn.Module):
         return False
 
     def forward(self, x):
-        logits = self.conv(x)
-        logits = torch.flatten(logits, 1)
-        return self.fc(logits)
+        x = self.conv2d(x)
+        # print("Conv2d")
+        # print(torch.mean(x))
+        x = torch.flatten(x, 1)
+        # print("Flatten")
+        # print(torch.mean(x))
+        x = self.fc(x)
+        # print("Fc")
+        # print(torch.mean(x))
+        x = torch.unsqueeze(x, 1)
+        # print("unsqz")
+        # print(torch.mean(x))
+        x = self.conv1d(x)
+        # print("conv1d")
+        # print(torch.mean(x))
+        x = torch.flatten(x, 1)
+        # print("flatten")
+        # print(torch.mean(x))
+        return x
 
 
 if __name__ == "__main__":

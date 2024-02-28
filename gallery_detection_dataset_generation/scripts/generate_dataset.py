@@ -83,9 +83,7 @@ class LabelGenerator:
         sigma = np.sqrt(variance)
         x = np.linspace(mu - 3 * sigma, mu + 3 * sigma, self.gaussian_width * 2 + 1)
         self.gaussian = stats.norm.pdf(x, mu, sigma)
-        for p in tqdm(
-            axis_points[:, :3], desc="Adding points to axis grid", total=len(axis_points)
-        ):
+        for p in axis_points[:, :3]:
             self.add_point(p)
 
     def add_point(self, point: np.ndarray):
@@ -135,55 +133,67 @@ def capture_dataset(index):
     vrange = index["info"]["vrange"]
     rrange = index["info"]["rrange"]
     prange = index["info"]["prange"]
-    for world_name in index["data"].keys():
-        world_data = index["data"][world_name]
-        n_datapoints = world_data["n_datapoints"]
-        path_to_mesh = world_data["path_to_mesh"]
-        path_to_axis = world_data["path_to_axis"]
-        folder_name = world_data["images_folder"]
-        fta_dist = world_data["fta_dist"]
-        path_to_dataset = index["info"]["path_to_dataset"]
-        save_folder_path = os.path.join(path_to_dataset, folder_name)
-        if os.path.isdir(save_folder_path):
-            shutil.rmtree(save_folder_path)
-        os.makedirs(save_folder_path)
-        mesh = trimesh.load(path_to_mesh, force="mesh")
-        axis_data = np.loadtxt(path_to_axis)
-        ray_caster = RayCaster(base_rays=base_rays, mesh=mesh)
-        import matplotlib.pyplot as plt
-
-        label_generator = LabelGenerator(axis_data, res=4)
-        for n_pose in tqdm(
-            range(n_datapoints), total=n_datapoints, leave=True, desc="Capturing dataset"
-        ):
-            idx = np.random.randint(0, len(axis_data))
-            x, y, z, vx, vy, vz, r, f, tid = axis_data[idx]
-            theta, chi = direction_vector_to_spherical(np.array((vx, vy, vz)))
-            base_yaw = theta
-            base_pitch = -chi
-            perp_yaw = base_yaw + np.deg2rad(90)
-            hdisp = r * np.random.uniform(-1, 1) * 0.5
-            vdisp = np.random.uniform(vrange[0], vrange[1])
-            roll = np.random.uniform(-rrange, rrange)
-            pitch = np.random.uniform(-prange, prange)
-            yaw = np.random.uniform(0, 2 * np.pi)
-            hvect = np.array((np.cos(perp_yaw), np.sin(perp_yaw), 0))
-            vvect = np.array((0, 0, 1))
-            yaw += np.deg2rad(10)
-            oR = Rotation.from_euler(
-                "xyz", np.array((0, base_pitch, base_yaw)), degrees=False
-            ).as_matrix()
-            nR = Rotation.from_euler("xyz", (roll, pitch, yaw), degrees=False).as_matrix()
-            fR = oR @ nR
-            position = np.array((x, y, z)) + (vdisp + fta_dist) * vvect + hdisp * hvect
-            orientation = Rotation.from_matrix(fR).as_euler(("xyz"))
-            depth_formatted, points, vectors, origins = ray_caster.cast_ray(orientation, position)
-            image = np.reshape(depth_formatted, (16, image_width))
-            label = label_generator.get_label(position, fR, 5)
-            file_name = f"{n_pose:010d}.npz"
-            path_to_file = os.path.join(save_folder_path, file_name)
-            with open(path_to_file, "wb+") as f:
-                np.savez(f, image=image, label=label)
+    poses_dict = dict()
+    total_poses = sum([index["data"][k]["n_datapoints"] for k in index["data"].keys()])
+    with tqdm(total=total_poses, desc="Collecting dataset") as pbar:
+        for world_name in index["data"].keys():
+            # Get params
+            path_to_dataset = index["info"]["path_to_dataset"]
+            n_datapoints = index["data"][world_name]["n_datapoints"]
+            path_to_mesh = index["data"][world_name]["path_to_mesh"]
+            path_to_axis = index["data"][world_name]["path_to_axis"]
+            folder_name = index["data"][world_name]["images_folder"]
+            fta_dist = index["data"][world_name]["fta_dist"]
+            # Setup folder
+            save_folder_path = os.path.join(path_to_dataset, folder_name)
+            if os.path.isdir(save_folder_path):
+                shutil.rmtree(save_folder_path)
+            os.makedirs(save_folder_path)
+            # Load files
+            mesh = trimesh.load(path_to_mesh, force="mesh")
+            axis_data = np.loadtxt(path_to_axis)
+            # Create ray caster and label generator
+            ray_caster = RayCaster(base_rays=base_rays, mesh=mesh)
+            label_generator = LabelGenerator(axis_data, res=4)
+            # Start capture
+            poses_array = np.zeros((n_datapoints, 6))  # To save poses for data-checking purposes
+            for n_pose in range(n_datapoints):
+                idx = np.random.randint(0, len(axis_data))
+                x, y, z, vx, vy, vz, r, f, tid = axis_data[idx]
+                theta, chi = direction_vector_to_spherical(np.array((vx, vy, vz)))
+                base_yaw = theta
+                base_pitch = -chi
+                perp_yaw = base_yaw + np.deg2rad(90)
+                hdisp = r * np.random.uniform(-1, 1) * 0.5
+                vdisp = np.random.uniform(vrange[0], vrange[1])
+                roll = np.random.uniform(-rrange, rrange)
+                pitch = np.random.uniform(-prange, prange)
+                yaw = np.random.uniform(0, 2 * np.pi)
+                hvect = np.array((np.cos(perp_yaw), np.sin(perp_yaw), 0))
+                vvect = np.array((0, 0, 1))
+                yaw += np.deg2rad(10)
+                oR = Rotation.from_euler(
+                    "xyz", np.array((0, base_pitch, base_yaw)), degrees=False
+                ).as_matrix()
+                nR = Rotation.from_euler("xyz", (roll, pitch, yaw), degrees=False).as_matrix()
+                fR = oR @ nR
+                position = np.array((x, y, z)) + (vdisp + fta_dist) * vvect + hdisp * hvect
+                orientation = Rotation.from_matrix(fR).as_euler(("xyz"))
+                poses_array[n_pose, :] = np.hstack((position, orientation))
+                depth_formatted, points, vectors, origins = ray_caster.cast_ray(
+                    orientation, position
+                )
+                image = np.reshape(depth_formatted, (16, image_width))
+                label = label_generator.get_label(position, fR, 5)
+                file_name = f"{n_pose:010d}.npz"
+                path_to_file = os.path.join(save_folder_path, file_name)
+                with open(path_to_file, "wb+") as f:
+                    np.savez(f, image=image, label=label)
+                pbar.update(1)
+            poses_dict[world_name] = poses_array.tolist()
+    path_to_poses_file = os.path.join(index["info"]["path_to_dataset"], "poses.json")
+    with open(path_to_poses_file, "w+") as f:
+        json.dump(poses_dict, f)
 
 
 def spherical_to_direction_vector(theta, phi):
@@ -253,6 +263,7 @@ def gen_index(
     decission = input(f"The number of datapoints is {n_pts_in_dataset}, continue? [yes]/no: ")
     if decission.lower() == "no":
         exit()
+    os.makedirs(path_to_dataset_folder, exist_ok=True)
     with open(os.path.join(path_to_dataset_folder, "index.json"), "w+") as f:
         json.dump(index, f)
     return index
@@ -261,13 +272,13 @@ def gen_index(
 def main():
     worlds_folder = "/home/lorenzo/gazebo_worlds/procedural_tunnels"
     index = gen_index(
-        5,
-        "/home/lorenzo/datasets/temp_dataset",
+        0.005,
+        "/media/lorenzo/SAM500/datasets/test_dataset",
         [os.path.join(worlds_folder, a) for a in os.listdir(worlds_folder)],
         1024,
         (0.10, 1),
-        0,
-        0,
+        4,
+        4,
     )
     capture_dataset(index)
 
