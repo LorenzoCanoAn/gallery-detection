@@ -1,13 +1,16 @@
 <launch>
     <arg name="path_to_model"
-        default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV3.torch" />
+        default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV3.v2.torch" />
+    <arg name="width" value="720"></arg>
     <arg name="image_topic" value="/depth_image"></arg>
+    <arg name="max_distance" default="40"></arg>
     <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
         <arg name="pointcloud_topic" value="/velodyne_points"></arg>
         <arg name="image_topic" value="$(arg image_topic)" type="str"></arg>
-        <arg name="max_distance" value="100"></arg>
+        <arg name="max_distance" value="$(arg max_distance)"></arg>
+        <arg name="width" value="$(arg width)"></arg>
         <arg name="invert_distance" value="false"></arg>
-        <arg name="normalize_image" value="false"></arg>
+        <arg name="normalize_image" value="true"></arg>
     </include>
     <node name="gallery_detection_node" type="gallery_detection_model_node.py"
         pkg="gallery_detection_ros" output="screen">
