@@ -9,7 +9,7 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 from generate_dataset import rotate_vector
 
-PARAMS = {"path_to_dataset_folder": "/media/lorenzo/SAM500/datasets/test_dataset"}
+PARAMS = {"path_to_dataset_folder": "/media/lorenzo/SAM500/datasets/tested_dataset"}
 
 
 def main(P):
@@ -45,6 +45,9 @@ def main(P):
             )
             data_sample = np.load(data_sample_path)
             lbl, img = data_sample["label"], data_sample["image"]
+            print(f"max(img)={np.max(img)}")
+            print(f"min(img)={np.min(img)}")
+            print(f"avg(img)={np.mean(img)}")
             # Plot and save sample
             fig = plt.figure()
             ax1 = fig.add_subplot(2, 1, 1)
