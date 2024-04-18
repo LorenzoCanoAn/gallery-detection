@@ -6,39 +6,38 @@ class GalleryDetectorV2(nn.Module):
     def __init__(self):
         super().__init__()
         self.input_height = 16
-        self.input_width = 360
+        self.input_width = 720
         self.layers = nn.Sequential(
             nn.Conv2d(1, 8, [3, 3], padding=(0, 1), padding_mode="circular"),
+            nn.Dropout(p=0.075),
             nn.ZeroPad2d((0, 0, 1, 1)),
-            nn.Dropout(p=0.05),
-            nn.MaxPool2d([2, 2]),
+            nn.MaxPool2d([2, 4]),
             nn.ReLU(),
             nn.Conv2d(8, 16, [3, 3], padding=(0, 1), padding_mode="circular"),
+            nn.Dropout(p=0.075),
             nn.ZeroPad2d((0, 0, 1, 1)),
-            nn.Dropout(p=0.05),
             nn.Conv2d(16, 16, [3, 3], padding=(0, 1), padding_mode="circular"),
+            nn.Dropout(p=0.075),
             nn.ZeroPad2d((0, 0, 1, 1)),
-            nn.Dropout(p=0.05),
             nn.MaxPool2d([2, 2]),
             nn.ReLU(),
             nn.Conv2d(16, 32, [3, 3], padding=(0, 1), padding_mode="circular"),
+            nn.Dropout(p=0.075),
             nn.ZeroPad2d((0, 0, 1, 1)),
-            nn.Dropout(p=0.05),
             nn.ReLU(),
             nn.Conv2d(32, 32, [3, 3], padding=(0, 1), padding_mode="circular"),
+            nn.Dropout(p=0.075),
             nn.ZeroPad2d((0, 0, 1, 1)),
-            nn.Dropout(p=0.05),
             nn.MaxPool2d([2, 2]),
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(2880, 2880),
-            nn.Dropout(p=0.05),
+            nn.Dropout(p=0.075),
             nn.ReLU(),
             nn.Linear(2880, 1440),
-            nn.Dropout(p=0.05),
+            nn.Dropout(p=0.075),
             nn.ReLU(),
             nn.Linear(1440, 720),
-            nn.Dropout(p=0.05),
             nn.ReLU(),
             nn.Linear(720, 360),
             nn.ReLU(),
@@ -175,6 +174,5 @@ class GalleryDetectorV3(nn.Module):
 if __name__ == "__main__":
     from torchinfo import summary
 
-    model = GalleryDetectorV3(debug=True)
-    model.init_weights()
+    model = GalleryDetectorV2()
     summary(model, (1, 1, 16, 720))
