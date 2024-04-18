@@ -9,7 +9,7 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 from generate_dataset import rotate_vector
 
-PARAMS = {"path_to_dataset_folder": "/media/lorenzo/SAM500/datasets/tested_dataset"}
+PARAMS = {"path_to_dataset_folder": "/media/lorenzo/SAM500/datasets/gallery_detection_dataset"}
 
 
 def main(P):
@@ -59,10 +59,9 @@ def main(P):
             # Plot and show environment
             plotter = Plotter()
             center = np.array(pose[:3])
+            print(center)
             direction = rotate_vector(np.array((1, 0, 0)), pose[3:6])
-            print(center.shape)
-            print(direction.shape)
-            plotter.add_arrows(center, direction, color="g")
+            plotter.add_arrows(center.reshape((1, 3)), direction.reshape(1, 3), color="g")
             plotter.add_actor(mesh_actor)
             plotter.add_actor(aps_actor)
             plotter.add_actor(avs_actor)
