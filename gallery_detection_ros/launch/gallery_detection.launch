@@ -1,6 +1,6 @@
 <launch>
     <arg name="path_to_model"
-        default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV3.v2.torch" />
+        default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV2.v4.torch" />
     <arg name="width" value="720"></arg>
     <arg name="image_topic" value="/depth_image"></arg>
     <arg name="max_distance" default="40"></arg>
