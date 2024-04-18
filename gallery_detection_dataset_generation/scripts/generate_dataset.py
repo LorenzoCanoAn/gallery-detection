@@ -470,10 +470,10 @@ def gen_index(
 
 
 def main():
-    worlds_folder = "/home/lorenzo/gazebo_worlds/procedural_tunnels"
+    worlds_folder = "/home/lorenzo/gazebo_worlds/training_worlds"
     index = gen_index(
         5,
-        "/media/lorenzo/SAM500/datasets/gallery_detection_dataset",
+        "/media/lorenzo/SAM500/datasets/gallery_detection_smooth_straight",
         [os.path.join(worlds_folder, a) for a in os.listdir(worlds_folder)],
         720,
         vrange=(0.1, 2),
