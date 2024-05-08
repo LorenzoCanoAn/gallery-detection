@@ -31,9 +31,10 @@ class NetworkNode:
         self.init_network()
         self._cv_bridge = CvBridge()
         image_topic = rospy.get_param("~image_topic")
+        output_topic = rospy.get_param("~output_topic")
         self.image_subscriber = rospy.Subscriber(image_topic, sensor_msg.Image, self.image_callback)
         self.detection_publisher = rospy.Publisher(
-            "/gallery_detection_vector", std_msg.Float32MultiArray, queue_size=10
+            output_topic, std_msg.Float32MultiArray, queue_size=10
         )
 
     def init_network(self):

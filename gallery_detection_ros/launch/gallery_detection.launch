@@ -2,11 +2,13 @@
     <arg name="path_to_model"
         default="/media/lorenzo/SAM500/models/gallery-detection/GalleryDetectorV2.v4.torch" />
     <arg name="width" value="720"></arg>
-    <arg name="image_topic" value="/depth_image"></arg>
     <arg name="max_distance" default="40"></arg>
+    <arg name="pointcloud_topic" default="/velodyne_points" />
+    <arg name="image_topic" value="/depth_image"></arg>
+    <arg name="detection_topic" default="/gallery_detection_vector" />
     <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
-        <arg name="pointcloud_topic" value="/velodyne_points"></arg>
-        <arg name="image_topic" value="$(arg image_topic)" type="str"></arg>
+        <arg name="pointcloud_topic" value="$(arg pointcloud_topic)"></arg>
+        <arg name="image_topic" value="$(arg image_topic)"></arg>
         <arg name="max_distance" value="$(arg max_distance)"></arg>
         <arg name="width" value="$(arg width)"></arg>
         <arg name="invert_distance" value="false"></arg>
@@ -16,6 +18,7 @@
         pkg="gallery_detection_ros" output="screen">
         <param name="~nn_path" value="$(arg path_to_model)" type="str" />
         <param name="~image_topic" value="$(arg image_topic)" type="str" />
+        <param name="~output_topic" value="$(arg detection_topic)" type="str" />
     </node>
     <node name="neural_network_filtering" pkg="gallery_detection_ros"
         type="output_filtering_node.py" output="log" />

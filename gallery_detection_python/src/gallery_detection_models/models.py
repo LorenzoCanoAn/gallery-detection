@@ -42,7 +42,7 @@ class GalleryDetectorV2(nn.Module):
             nn.Dropout(p=self.drpt),
             nn.ReLU(),
             nn.Linear(720, 360),
-            nn.Sigmoid(),
+            nn.ReLU(),
         )
 
     @classmethod
@@ -52,7 +52,7 @@ class GalleryDetectorV2(nn.Module):
     def forward(self, x):
         # X should be an image with floats from 0 to 1
         logits = self.layers(x)
-        return logits
+        return logits * 1.2
 
 
 class GalleryDetectorSkipConn(nn.Module):

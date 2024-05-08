@@ -17,14 +17,12 @@ def min_distance(angle, obj):
 
 
 def array_position_to_angle(array_position):
-    return ((180 - array_position) / 180.0 * np.math.pi + 2 * np.math.pi) % (
-        2 * np.math.pi
-    )
+    return ((180 - array_position) / 180.0 * np.math.pi + 2 * np.math.pi) % (2 * np.math.pi)
 
 
 def filtered_to_gallery_angles(filtered):
     max_peak = np.max(filtered)
-    ratio = 0.1
+    ratio = 0.3
     galleries_indices = np.nonzero(filtered > max_peak * ratio)[0]
     galleries_angles = []
     for index in galleries_indices:
@@ -61,9 +59,7 @@ class FilteringNode:
         gallery_angles, values = filtered_to_gallery_angles(filtered)
         dim = (std_msg.MultiArrayDimension("0", gallery_angles.__len__(), 2),)
         layout = std_msg.MultiArrayLayout(dim, 0)
-        output_message = std_msg.Float32MultiArray(
-            layout, np.hstack([gallery_angles, values])
-        )
+        output_message = std_msg.Float32MultiArray(layout, np.hstack([gallery_angles, values]))
 
         self.detection_publisher.publish(output_message)
 
