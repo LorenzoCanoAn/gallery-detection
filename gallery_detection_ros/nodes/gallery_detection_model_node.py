@@ -39,21 +39,13 @@ class NetworkNode:
         )
 
     def init_network(self):
-        file_path = rospy.get_param(
-            "~nn_path", "/home/administrator/models/GalleryDetectorV2.v4_128_epochs.torch"
-        )
+        file_path = rospy.get_param("~nn_path")
         file_name = pathlib.Path(file_path).name
         nn_type = file_name.split(".")[0]
         module = importlib.import_module("gallery_detection_models.models")
-        # from gallery_detection_models.models import GalleryDetectorV2
         self.model = getattr(module, nn_type)()
-        # self.model = GalleryDetectorV2()
-        # self.model.load_state_dict(
-        #    torch.load("/home/administrator/models/GalleryDetectorV2.v4_128_epochs.torch")
-        # )
-        self.model.load_state_dict(torch.load(file_path))  # , map_location=torch.device("cpu")))
+        self.model.load_state_dict(torch.load(file_path))
         self.model.eval()
-        # self.model.load_state_dict(torch.load(file_path))  # , map_location=torch.device("cpu")))
 
     def image_callback(self, msg: sensor_msg.Image):
         depth_image_raw = np.reshape(
