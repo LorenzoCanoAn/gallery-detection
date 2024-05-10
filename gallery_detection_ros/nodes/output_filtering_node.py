@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/home/administrator/miniconda3/envs/toponav/bin/python3.9
 
 # This node takes the output of the neural network as an imput, and outputs a list of angles at which a gallery could be present
 import std_msgs.msg as std_msg

@@ -1,6 +1,7 @@
-#!/home/lorenzo/miniconda3/envs/dinf/bin/python3.8
+#!/home/administrator/miniconda3/envs/toponav/bin/python3.9
 import pathlib
 import torch
+import cv2
 from cv_bridge import CvBridge
 import sensor_msgs.msg as sensor_msg
 import std_msgs.msg as std_msg
@@ -30,21 +31,32 @@ class NetworkNode:
         )
         self.init_network()
         self._cv_bridge = CvBridge()
-        image_topic = rospy.get_param("~image_topic")
-        output_topic = rospy.get_param("~output_topic")
+        image_topic = rospy.get_param("~image_topic", "depth_image")
+        output_topic = rospy.get_param("~output_topic", "detection_vector")
         self.image_subscriber = rospy.Subscriber(image_topic, sensor_msg.Image, self.image_callback)
         self.detection_publisher = rospy.Publisher(
             output_topic, std_msg.Float32MultiArray, queue_size=10
         )
 
     def init_network(self):
-        file_path = rospy.get_param("~nn_path")
+        file_path = rospy.get_param("~nn_path","/home/administrator/models/GalleryDetectorV2.v4_128_epochs.torch")
         file_name = pathlib.Path(file_path).name
+        print("hola")
         nn_type = file_name.split(".")[0]
+        print("2")
         module = importlib.import_module("gallery_detection_models.models")
-        self.model = getattr(module, nn_type)()
-        self.model.load_state_dict(torch.load(file_path))  # , map_location=torch.device("cpu")))
+        from gallery_detection_models.models import GalleryDetectorV2
+        print("3")
+        #self.model = getattr(module, nn_type)()
+        print("4")
+        self.model = GalleryDetectorV2()
+        print("5")
+        self.model.load_state_dict(torch.load("/home/administrator/models/GalleryDetectorV2.v4_128_epochs.torch"))
+        print("6")
+        #self.model.load_state_dict(torch.load(file_path))  # , map_location=torch.device("cpu")))
         self.model.eval()
+        print("7")
+        #self.model.load_state_dict(torch.load(file_path))  # , map_location=torch.device("cpu")))
 
     def image_callback(self, msg: sensor_msg.Image):
         depth_image_raw = np.reshape(
