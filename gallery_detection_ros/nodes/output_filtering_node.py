@@ -4,20 +4,21 @@
 import std_msgs.msg as std_msg
 import rospy
 import numpy as np
+import math
 
 
 def min_distance(angle, obj):
-    distance = (angle - obj) % (np.math.pi * 2)
-    if distance < -np.math.pi:
-        distance += np.math.pi * 2
-    elif distance > np.math.pi:
-        distance -= np.math.pi * 2
+    distance = (angle - obj) % (math.pi * 2)
+    if distance < -math.pi:
+        distance += math.pi * 2
+    elif distance > math.pi:
+        distance -= math.pi * 2
     distance = abs(distance)
     return distance
 
 
 def array_position_to_angle(array_position):
-    return ((180 - array_position) / 180.0 * np.math.pi + 2 * np.math.pi) % (2 * np.math.pi)
+    return ((180 - array_position) / 180.0 * math.pi + 2 * math.pi) % (2 * math.pi)
 
 
 def filtered_to_gallery_angles(filtered):
