@@ -1,4 +1,3 @@
-#!/home/administrator/miniconda3/envs/toponav/bin/python3.9
 import pathlib
 import torch
 import cv2

@@ -6,6 +6,8 @@
     <arg name="pointcloud_topic" default="/velodyne_points" />
     <arg name="image_topic" value="/depth_image"></arg>
     <arg name="detection_topic" default="/gallery_detection_vector" />
+    <arg name="python_interpreter_path" default="$(env TOPOLOGICAL_NAVIGATION_PYTHON_PATH)" />
+
     <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
         <arg name="pointcloud_topic" value="$(arg pointcloud_topic)"></arg>
         <arg name="image_topic" value="$(arg image_topic)"></arg>
@@ -14,12 +16,15 @@
         <arg name="invert_distance" value="false"></arg>
         <arg name="normalize_image" value="true"></arg>
     </include>
-    <node name="gallery_detection_node" type="gallery_detection_model_node.py"
-        pkg="gallery_detection_ros" output="screen">
+
+    <node
+        name="gallery_detection_node" type="gallery_detection_model_node.py"
+        pkg="gallery_detection_ros" output="screen" launch-prefix="$(arg python_interpreter_path)">
         <param name="~nn_path" value="$(arg path_to_model)" type="str" />
         <param name="~image_topic" value="$(arg image_topic)" type="str" />
         <param name="~output_topic" value="$(arg detection_topic)" type="str" />
     </node>
+
     <node name="neural_network_filtering" pkg="gallery_detection_ros"
-        type="output_filtering_node.py" output="log" />
+        type="output_filtering_node.py" output="log" launch-prefix="$(arg python_interpreter_path)" />
 </launch>
