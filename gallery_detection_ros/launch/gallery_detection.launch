@@ -6,8 +6,10 @@
     <arg name="pointcloud_topic" default="/velodyne_points" />
     <arg name="image_topic" value="/depth_image"></arg>
     <arg name="detection_topic" default="/gallery_detection_vector" />
+    <arg name="stability_topic" default="/is_detection_stable" />
     <arg name="python_interpreter_path" default="$(env TOPOLOGICAL_NAVIGATION_PYTHON_PATH)" />
-
+    <arg name="window_width" default="30" />
+    <arg name="min_value" default="0.2" />
     <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
         <arg name="pointcloud_topic" value="$(arg pointcloud_topic)"></arg>
         <arg name="image_topic" value="$(arg image_topic)"></arg>
@@ -26,5 +28,14 @@
     </node>
 
     <node name="neural_network_filtering" pkg="gallery_detection_ros"
-        type="output_filtering_node.py" output="log" launch-prefix="$(arg python_interpreter_path)" />
+        type="output_filtering_node.py" output="log" launch-prefix="$(arg python_interpreter_path)">
+        <param name="~window_width" value="$(arg window_width)" type="int" />
+        <param name="~min_value" value="$(arg min_value)" type="double" />
+    </node>
+    <node name="prediction_stability_node" pkg="gallery_detection_ros"
+        type="prediction_stability_node.py" output="screen"
+        launch-prefix="$(arg python_interpreter_path)">
+        <param name="~prediction_vector_topic" value="$(arg detection_topic)" />
+        <param name="~output_topic" value="$(arg stability_topic)" />
+    </node>
 </launch>

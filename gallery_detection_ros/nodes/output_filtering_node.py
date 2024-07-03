@@ -3,6 +3,7 @@ import std_msgs.msg as std_msg
 import rospy
 import numpy as np
 import math
+from gallery_detection_ros.msg import DetectionVector, DetectedGalleries, DetectionVectorStability
 
 
 def min_distance(angle, obj):
@@ -16,51 +17,63 @@ def min_distance(angle, obj):
 
 
 def array_position_to_angle(array_position):
-    return ((180 - array_position) / 180.0 * math.pi + 2 * math.pi) % (2 * math.pi)
+    return np.deg2rad(array_position)
 
 
-def filtered_to_gallery_angles(filtered):
-    max_peak = np.max(filtered)
-    ratio = 0.3
-    galleries_indices = np.nonzero(filtered > max_peak * ratio)[0]
+def filtered_to_gallery_angles(filtered, min_value):
+    galleries_indices = np.nonzero(filtered > min_value)[0]
     galleries_angles = []
     for index in galleries_indices:
         galleries_angles.append(array_position_to_angle(index))
-    return galleries_angles, filtered[galleries_indices]
+    values = filtered[galleries_indices]
+    return (galleries_angles, values)
+
+
+def is_max_in_window(array: np.ndarray, idx: int, width: int):
+    to_check = array[idx]
+    start_idx_w = -int(width / 2) + idx
+    end_idx_w = start_idx_w + width
+    window = np.take(array, np.r_[start_idx_w:end_idx_w], mode="wrap")
+    if to_check >= np.max(window):
+        return True
+    else:
+        return False
 
 
 class FilteringNode:
     def __init__(self):
         rospy.init_node("gallery_vector_filtering")
+        self.window_width = rospy.get_param(
+            "~window_width", default=10
+        )  # Width of window used to check if an element is the max
+        self.threshold_to_detect = rospy.get_param(
+            "~threshold_to_detect", default=0.4
+        )  # If "max_value in a window is less that this fraction of the largest one in the vector, it is not considered"
         self.detection_publisher = rospy.Publisher(
-            "/currently_detected_galleries", std_msg.Float32MultiArray, queue_size=10
+            "/currently_detected_galleries", DetectedGalleries, queue_size=1
         )
-
+        self.filtered_vector_publisher = rospy.Publisher(
+            "/filtered_detection_vector", DetectionVector, queue_size=1
+        )
         rospy.Subscriber(
             "/gallery_detection_vector",
-            std_msg.Float32MultiArray,
+            DetectionVector,
             callback=self.filter_vector,
         )
 
-    def filter_vector(self, msg):
-        vector = np.array(msg.data)
-        vector = np.flip(vector)
-        vector = np.roll(vector, 180)
+    def filter_vector(self, msg: DetectionVector):
+        vector = np.array(msg.vector)
+        header = msg.header
         filtered = np.zeros(360)
-        for i in range(360):
-            to_check = vector[i]
-            filtered[i] = to_check
-            a = 40
-            for j in range(a):
-                index_inside_subsection = ((-int(a / 2) + j) + i) % 356
-                if vector[index_inside_subsection] > to_check:
-                    filtered[i] = 0
-        gallery_angles, values = filtered_to_gallery_angles(filtered)
-        dim = (std_msg.MultiArrayDimension("0", gallery_angles.__len__(), 2),)
-        layout = std_msg.MultiArrayLayout(dim, 0)
-        output_message = std_msg.Float32MultiArray(layout, np.hstack([gallery_angles, values]))
-
-        self.detection_publisher.publish(output_message)
+        for i in range(len(vector)):
+            filtered[i] = vector[i] if is_max_in_window(vector, i, self.window_width) else 0
+        filtered_vector_msg = DetectionVector(header, filtered)
+        gallery_angles, gallery_values = filtered_to_gallery_angles(
+            filtered, self.threshold_to_detect
+        )
+        detected_galleries_msg = DetectedGalleries(header, gallery_angles, gallery_values)
+        self.filtered_vector_publisher.publish(filtered_vector_msg)
+        self.detection_publisher.publish(detected_galleries_msg)
 
 
 def main():
