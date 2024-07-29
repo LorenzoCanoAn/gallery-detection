@@ -1,6 +1,6 @@
 <launch>
     <arg name="path_to_model"
-        default="$(env HOME)/models/GalleryDetectorV2.v4_128_epochs.torch" />
+        default="$(env HOME)/models/GalleryDetectorV2.v4.torch" />
     <arg name="width" value="720"></arg>
     <arg name="max_distance" default="40"></arg>
     <arg name="pointcloud_topic" default="/velodyne_points" />

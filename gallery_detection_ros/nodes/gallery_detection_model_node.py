@@ -38,6 +38,7 @@ class NetworkNode:
 
     def init_network(self):
         file_path = rospy.get_param("~nn_path")
+        print(f"Loading{file_path}")
         file_name = pathlib.Path(file_path).name
         nn_type = file_name.split(".")[0]
         module = importlib.import_module("gallery_detection_models.models")
@@ -46,9 +47,7 @@ class NetworkNode:
         self.model.eval()
 
     def image_callback(self, msg: sensor_msg.Image):
-        depth_image_raw = np.reshape(
-            np.frombuffer(msg.data, dtype=np.float32), (msg.height, msg.width)
-        )
+        depth_image_raw = np.reshape(np.frombuffer(msg.data, dtype=np.float32), (msg.height, msg.width))
         depth_image_norm = depth_image_raw / np.max(depth_image_raw)
         depth_image_tensor = torch.tensor(depth_image_norm).float().to(torch.device("cpu"))
         depth_image_tensor = torch.reshape(depth_image_tensor, [1, 1, 16, -1])

@@ -5,19 +5,11 @@ import numpy as np
 
 
 def is_local_minima(array: np.ndarray, idx: int):
-    return (
-        array[idx] < array[(idx - 1) % len(array)]
-        and array[idx] < array[(idx + 1) % len(array)]
-        and array[idx] > 0
-    )
+    return array[idx] < array[(idx - 1) % len(array)] and array[idx] < array[(idx + 1) % len(array)] and array[idx] > 0
 
 
 def is_local_maxima(array: np.ndarray, idx: int):
-    return (
-        array[idx] > array[(idx - 1) % len(array)]
-        and array[idx] > array[(idx + 1) % len(array)]
-        and array[idx] > 0
-    )
+    return array[idx] > array[(idx - 1) % len(array)] and array[idx] > array[(idx + 1) % len(array)] and array[idx] > 0
 
 
 class Queue:
@@ -44,7 +36,7 @@ class Queue:
 
 def has_local_minima(vector: np.ndarray):
     for idx in range(len(vector)):
-        if is_local_minima(vector, idx):
+        if is_local_minima(vector, idx) and vector[idx] > 0.1:
             return True
     return False
 
@@ -87,9 +79,7 @@ class PredictionStabilityNode:
         self.prediction_vector_topic = rospy.get_param("~prediction_vector_topic")
         self.output_topic = rospy.get_param("~output_topic", "/is_detection_stable")
         # Set publishers
-        self.output_publisher = rospy.Publisher(
-            self.output_topic, DetectionVectorStability, queue_size=1
-        )
+        self.output_publisher = rospy.Publisher(self.output_topic, DetectionVectorStability, queue_size=1)
         # Set subscribers
         rospy.Subscriber(
             self.prediction_vector_topic,
@@ -101,11 +91,9 @@ class PredictionStabilityNode:
         vector = np.array(msg.vector).reshape(-1)
         has_loc_min = has_local_minima(vector)
         self.avg_of_maxima_tracker.new_vector(vector)
-        is_stable = not has_loc_min and self.avg_of_maxima_tracker.difference() < 0.05
+        is_stable = not has_loc_min  # and self.avg_of_maxima_tracker.difference() < 0.05
         self.stability_queue.add_data(is_stable)
-        self.output_publisher.publish(
-            DetectionVectorStability(msg.header, np.all(self.stability_queue.asarray()))
-        )
+        self.output_publisher.publish(DetectionVectorStability(msg.header, np.all(self.stability_queue.asarray())))
 
     def run(self):
         rospy.spin()
