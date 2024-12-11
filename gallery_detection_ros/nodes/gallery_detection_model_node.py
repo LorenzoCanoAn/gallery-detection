@@ -41,7 +41,7 @@ class NetworkNode:
         nn_type = file_name.split(".")[0]
         module = importlib.import_module("gallery_detection_models.models")
         self.model = getattr(module, nn_type)()
-        self.model.load_state_dict(torch.load(file_path))
+        self.model.load_state_dict(torch.load(file_path,weights_only=True))
         self.model.eval()
 
     def image_callback(self, msg: sensor_msg.Image):
