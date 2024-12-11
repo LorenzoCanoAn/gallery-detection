@@ -1,41 +1,50 @@
 <launch>
+    <!-- TOPIC ARGUMENTS-->
+    <arg name="pointcloud_topic" default="velodyne_points" />
+    <arg name="depth_image_topic" default="depth_image" />
+    <arg name="cnn_prediction_topic" default="gallery_detection_cnn_prediction" />
+    <arg name="detected_galleries_topic" default="currently_detected_galleries" />
+    <arg name="filtered_cnn_prediction_topic" default="filtered_gallery_detection_cnn_prediction" />
+    <arg name="cnn_detection_stability_topic" default="is_cnn_prediction_stable" />
+    <!-- CONTROL ARGUMENTS-->
+    <!-- PARAMETER ARGUMENTS-->
     <arg name="path_to_model"
-        default="$(env HOME)/models/GalleryDetectorV2.v4.torch" />
+        default="$(env HOME)/models/GalleryDetectorV2.v4_128_epochs.torch" />
     <arg name="width" value="720"></arg>
     <arg name="max_distance" default="40"></arg>
-    <arg name="pointcloud_topic" default="/velodyne_points" />
-    <arg name="image_topic" value="/depth_image"></arg>
-    <arg name="detection_topic" default="/gallery_detection_vector" />
-    <arg name="stability_topic" default="/is_detection_stable" />
     <arg name="python_interpreter_path" default="$(env TOPOLOGICAL_NAVIGATION_PYTHON_PATH)" />
     <arg name="window_width" default="30" />
     <arg name="min_value" default="0.2" />
+
     <include file="$(find lidar_to_other)/launch/pointcloud_to_depth_image.launch">
-        <arg name="pointcloud_topic" value="$(arg pointcloud_topic)"></arg>
-        <arg name="image_topic" value="$(arg image_topic)"></arg>
+        <arg name="input_lidar_topic" value="$(arg pointcloud_topic)"></arg>
+        <arg name="output_image_topic" value="$(arg depth_image_topic)" />
         <arg name="max_distance" value="$(arg max_distance)"></arg>
         <arg name="width" value="$(arg width)"></arg>
         <arg name="invert_distance" value="false"></arg>
         <arg name="normalize_image" value="true"></arg>
     </include>
-
     <node
         name="gallery_detection_node" type="gallery_detection_model_node.py"
         pkg="gallery_detection_ros" output="screen" launch-prefix="$(arg python_interpreter_path)">
         <param name="~nn_path" value="$(arg path_to_model)" type="str" />
-        <param name="~image_topic" value="$(arg image_topic)" type="str" />
-        <param name="~output_topic" value="$(arg detection_topic)" type="str" />
+        <remap from="input_image_topic" to="$(arg depth_image_topic)" />
+        <remap from="output_prediction_topic" to="$(arg cnn_prediction_topic)" />
     </node>
 
     <node name="neural_network_filtering" pkg="gallery_detection_ros"
         type="output_filtering_node.py" output="log" launch-prefix="$(arg python_interpreter_path)">
         <param name="~window_width" value="$(arg window_width)" type="int" />
         <param name="~min_value" value="$(arg min_value)" type="double" />
+        <remap from="input_cnn_prediction_topic" to="$(arg cnn_prediction_topic)" />
+        <remap from="output_detected_galleries_topic" to="$(arg detected_galleries_topic)" />
+        <remap from="output_filtered_detection_vector_topic"
+            to="$(arg filtered_cnn_prediction_topic)" />
     </node>
     <node name="prediction_stability_node" pkg="gallery_detection_ros"
         type="prediction_stability_node.py" output="screen"
         launch-prefix="$(arg python_interpreter_path)">
-        <param name="~prediction_vector_topic" value="$(arg detection_topic)" />
-        <param name="~output_topic" value="$(arg stability_topic)" />
+        <remap from="input_cnn_prediction_topic" to="$(arg cnn_prediction_topic)" />
+        <remap from="output_detection_stability_topic" to="$(arg cnn_detection_stability_topic)" />
     </node>
 </launch>

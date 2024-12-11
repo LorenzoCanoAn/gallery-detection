@@ -50,13 +50,13 @@ class FilteringNode:
             "~threshold_to_detect", default=0.4
         )  # If "max_value in a window is less that this fraction of the largest one in the vector, it is not considered"
         self.detection_publisher = rospy.Publisher(
-            "/currently_detected_galleries", DetectedGalleries, queue_size=1
+            "output_detected_galleries_topic", DetectedGalleries, queue_size=1
         )
         self.filtered_vector_publisher = rospy.Publisher(
-            "/filtered_detection_vector", DetectionVector, queue_size=1
+            "output_filtered_detection_vector_topic", DetectionVector, queue_size=1
         )
         rospy.Subscriber(
-            "/gallery_detection_vector",
+            "input_cnn_prediction_topic",
             DetectionVector,
             callback=self.filter_vector,
         )

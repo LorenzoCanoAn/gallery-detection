@@ -78,9 +78,7 @@ class GalleryDetectorSkipConn(nn.Module):
 
     def dbpt(self, x, tensor_name=""):  # Debug print
         if self.debug:
-            print(
-                f"{tensor_name}: {torch.mean(x).item(), torch.max(x).item(), torch.min(x).item()}"
-            )
+            print(f"{tensor_name}: {torch.mean(x).item(), torch.max(x).item(), torch.min(x).item()}")
         return x
 
     def forward(self, x):
@@ -94,9 +92,7 @@ class GalleryDetectorSkipConn(nn.Module):
 
 
 class Conv2DBnDropReLU(nn.Module):
-    def __init__(
-        self, in_channels, out_channels, kernel_size, padding, padding_mode, stride, p=0.05
-    ):
+    def __init__(self, in_channels, out_channels, kernel_size, padding, padding_mode, stride, p=0.05):
         super().__init__()
         self.layers = nn.Sequential(
             nn.Conv2d(
@@ -158,9 +154,7 @@ class GalleryDetectorV3(nn.Module):
 
     def dbpt(self, x, tensor_name=""):  # Debug print
         if self.debug:
-            print(
-                f"{tensor_name}: {torch.mean(x).item(), torch.max(x).item(), torch.min(x).item()}"
-            )
+            print(f"{tensor_name}: {torch.mean(x).item(), torch.max(x).item(), torch.min(x).item()}")
         return x
 
     def forward(self, x):
@@ -177,4 +171,4 @@ if __name__ == "__main__":
     from torchinfo import summary
 
     model = GalleryDetectorV2()
-    summary(model, (1, 1, 16, 720))
+    summary(model, (1, 1, 16, 720), col_names=["input_size", "output_size"])

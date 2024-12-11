@@ -31,10 +31,8 @@ class NetworkNode:
         )
         self.init_network()
         self._cv_bridge = CvBridge()
-        image_topic = rospy.get_param("~image_topic", "depth_image")
-        output_topic = rospy.get_param("~output_topic", "detection_vector")
-        self.image_subscriber = rospy.Subscriber(image_topic, sensor_msg.Image, self.image_callback)
-        self.detection_publisher = rospy.Publisher(output_topic, DetectionVector, queue_size=1)
+        self.image_subscriber = rospy.Subscriber("input_image_topic", sensor_msg.Image, self.image_callback)
+        self.detection_publisher = rospy.Publisher("output_prediction_topic", DetectionVector, queue_size=1)
 
     def init_network(self):
         file_path = rospy.get_param("~nn_path")

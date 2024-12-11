@@ -75,14 +75,11 @@ class PredictionStabilityNode:
         # Set variables
         self.stability_queue = Queue(8)
         self.avg_of_maxima_tracker = LocalMaximaMagnitudeTracker()
-        # Get params
-        self.prediction_vector_topic = rospy.get_param("~prediction_vector_topic")
-        self.output_topic = rospy.get_param("~output_topic", "/is_detection_stable")
         # Set publishers
-        self.output_publisher = rospy.Publisher(self.output_topic, DetectionVectorStability, queue_size=1)
+        self.output_publisher = rospy.Publisher("output_detection_stability_topic", DetectionVectorStability, queue_size=1)
         # Set subscribers
         rospy.Subscriber(
-            self.prediction_vector_topic,
+            "input_cnn_prediction_topic",
             DetectionVector,
             callback=self.prediction_vector_callback,
         )

@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/gallery_detection.egg-info/PKG-INFO
+src/gallery_detection.egg-info/SOURCES.txt
+src/gallery_detection.egg-info/dependency_links.txt
+src/gallery_detection.egg-info/top_level.txt
+src/gallery_detection_models/__init__.py
+src/gallery_detection_models/models.py

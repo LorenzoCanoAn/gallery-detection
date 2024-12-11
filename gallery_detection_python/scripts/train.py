@@ -48,28 +48,20 @@ class GalleryDetectionDataset(Dataset):
         self.n_samples_per_world = {}
         for world_name in self.index["data"].keys():
             n_samples_in_world = self.index["data"][world_name]["n_datapoints"]
-            self.n_samples_per_world[world_name] = int(
-                np.round(n_samples_in_world * self.n_desired_samples / self.n_available_samples)
-            )
-        self.final_n_datapoints = sum(
-            self.n_samples_per_world[k] for k in self.n_samples_per_world.keys()
-        )
+            self.n_samples_per_world[world_name] = int(np.round(n_samples_in_world * self.n_desired_samples / self.n_available_samples))
+        self.final_n_datapoints = sum(self.n_samples_per_world[k] for k in self.n_samples_per_world.keys())
         print(self.n_samples_per_world)
 
     def load(self):
         print("Allocating memory")
-        self.images = torch.zeros(
-            (self.final_n_datapoints, 1, 16, self.index["info"]["image_width"])
-        )
+        self.images = torch.zeros((self.final_n_datapoints, 1, 16, self.index["info"]["image_width"]))
         self.labels = torch.zeros((self.final_n_datapoints, 360))
         global_index = 0
         with tqdm(total=self.final_n_datapoints) as pbar:
             for world_name in self.index["data"].keys():
                 folder_name = self.index["data"][world_name]["images_folder"]
                 samples_to_load = self.n_samples_per_world[world_name]
-                path_to_world_folder = os.path.join(
-                    self.index["info"]["path_to_dataset"], folder_name
-                )
+                path_to_world_folder = os.path.join(self.index["info"]["path_to_dataset"], folder_name)
                 assert os.path.exists(path_to_world_folder)
                 raw_idxs = np.arange(0, self.index["data"][world_name]["n_datapoints"])
                 np.random.shuffle(raw_idxs)
